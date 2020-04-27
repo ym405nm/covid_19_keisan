@@ -1,0 +1,98 @@
+<!--　 　　　＿＿＿_　　-->
+<!--　　　／　　 　 　＼-->
+<!--　 ／　　─　 　 ─＼　-->
+<!--／ 　　 （●） 　（●） ＼-->
+<!--|　 　　 　 （__人__）　 　 |　　-->
+<!--/　　　　 ∩ノ ⊃　　／-->
+<!--(　 ＼　／ ＿ノ　|　 |-->
+<!--.＼　“　　／＿＿|　 | 　-->
+<!--　　＼ ／＿＿＿ ／ 　-->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+</head>
+<body>
+<div id="chart"></div>
+ym405nm <a href="https://github.com/tokyo-metropolitan-gov/covid19/blob/development/data/data.json">motoneta</a>
+<a href="kaitayatu">kaitayatu</a>
+<script>
+
+    const time_span = 7;
+    let calc_data = [];
+
+    $(window).on('load', function () {
+        $.ajax({
+            type: "GET",
+            url: "./data/data.json",
+            timeout: 10000,
+            cache: false,
+            dataType: 'json'
+        }).done(function (response) {
+            patient_data = response.patients_summary.data;
+            create_data(patient_data);
+            call_google_chart();
+        })
+
+    });
+
+    function call_google_chart() {
+        google.charts.load('current', {'packages': ['line']});
+        google.charts.setOnLoadCallback(drawChart);
+    }
+
+    function create_data(patient_data) {
+
+        for (let patient_index in patient_data) {
+            let index_int = patient_index * 1
+            if (patient_data.length + 1 === index_int + time_span) {
+                break;
+            }
+            let patient_tmp_counter = 0;
+            let date_counter = 0
+            let final_patient_datetime = '';
+            for (date_counter = 0; date_counter < time_span; date_counter++) {
+                let patient_tmp_data = patient_data[(index_int + date_counter) + ''];
+                let patient_numbers = patient_tmp_data['小計'];
+                final_patient_datetime = patient_tmp_data['日付'];
+                patient_tmp_counter += patient_numbers;
+            }
+
+            let patient_datetime = final_patient_datetime;
+            patient_datetime = patient_datetime.slice(0, 10)
+            patient_datetime = patient_datetime.replace(/\-/g, '/')
+            let time_span_result = [new Date(patient_datetime), patient_tmp_counter];
+            calc_data.push(time_span_result)
+        }
+    }
+
+
+    function drawChart() {
+        let data = new google.visualization.DataTable();
+        data.addColumn('date', '集計の終点となった日（これを終点として7日間前遡って計算します）');
+        data.addColumn('number', '陽性数');
+
+        data.addRows(calc_data);
+
+        let options = {
+            chart: {
+                title: '特定期間の和',
+            },
+            width: 900,
+            height: 500,
+            hAxis: {
+                format: 'M/d',
+                gridlines: {count: 15}
+            },
+
+        };
+
+        let chart = new google.charts.Line(document.getElementById('chart'));
+        chart.draw(data, google.charts.Line.convertOptions(options));
+    }
+</script>
+</body>
+</html>
