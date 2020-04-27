@@ -73,7 +73,7 @@ ym405nm <a href="https://github.com/tokyo-metropolitan-gov/covid19/blob/developm
     function drawChart() {
         let data = new google.visualization.DataTable();
         data.addColumn('date', '集計の終点となった日（これを終点として7日間前遡って計算します）');
-        data.addColumn('number', '陽性数');
+        data.addColumn('number', 'yosei(wa)');
 
         data.addRows(calc_data);
 
